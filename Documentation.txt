@@ -1,1 +1,19 @@
 
+Functions(Calls) needed to be implemented:
+1.Socket();
+2.Bind();
+3.Sendto();
+4.recvfrom();
+
+We need to implement out own socket type MRP(My reliable Protocol),
+
+This will guarantee that any message sent using a
+MRP socket is always delivered to the receiver exactly once.
+
+Implementation:
+
+1. One UDP socket through which all actual communication happens.
+2. One alarm signal handler (discussed later). Signal handler handles all the
+   messages received from the UDP socket and all timeout and retransmissions
+   needed for ensuring reliability.
+3. We need send buffer,recieve buffer,unack message table, received messageid table.
