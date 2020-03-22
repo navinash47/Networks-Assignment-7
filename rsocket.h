@@ -1,7 +1,6 @@
 #ifndef RSOCKET_H
 #define RSOCKET_H
 
-// Standard includes
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,5 +11,26 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/time.h>
+
+// some Defines
+#define SOCK_MRP 1
+
+//recieve buffer struct
+typedef struct _recievebuff
+{
+    char message[101];
+    struct sockaddr_in source_addr;
+    int messlen;
+} recvbuffer;
+// unackmess struct
+typedef struct _unackbuff
+{
+    char message[101];
+    int id;
+    int messlen;
+    struct timeval tv;
+} unackmessbuffer;
+
+//function prototypes
 
 #endif
