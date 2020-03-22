@@ -32,5 +32,7 @@ typedef struct _unackbuff
 } unackmessbuffer;
 
 //function prototypes
+int r_socket(int domain, int type, int protocol);
+int r_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 
 #endif
