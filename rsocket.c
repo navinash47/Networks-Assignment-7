@@ -11,5 +11,7 @@ int r_socket(int domain, int type, int protocol)
     {
         return -1;
     }
-    return 0;
+    else
+    {
+    }
 }
