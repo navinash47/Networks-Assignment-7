@@ -17,6 +17,11 @@
 #define SOCK_MRP 1
 #define TABLE_SIZE 100
 #define MSG_SIZE 101
+#define TIMEOUT 2
+#define DROP_PROBALITY 0.2
+#define BUFFER_SIZE 100
+
+
 
 // Function prototypes
 int r_socket(int domain, int type, int protocol);

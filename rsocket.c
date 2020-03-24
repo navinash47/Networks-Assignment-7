@@ -29,19 +29,27 @@ typedef struct _unackMsg
 } unackMsg;
 
 // Handle functions
-void HandleRetransmit(int sockfd);
-void HandleReceive(int sockfd, char *buffer, const struct sockaddr *src_addr, int msg_len);
-void HandleAppMsgRecv(int sockfd, char *buffer, const struct sockaddr *src_addr, int msg_len);
-void sendAck(int id, int sockfd, const struct sockaddr *dest_addr);
-void HandleACKMsgRecv(char *buffer);
+int HandleACKMsgReceive(int id);
+int HandleAppMsgReceive(int id, char *buf, struct sockaddr_in source_addr, socklen_t addr_len);
+int getEmptyPlaceRecvid();
+size_t combineIntString(int id, char *buf, int len);
+void breakIntString(int *id, char *buf, int len);
+int delFromUnackTable(int id);
+int HandleReceive();
+int HandleRetransmit();
 //other functions
 unackMsg *find_empty_place_unAckTable();
+void *runnerX(void *param);
 
 int min(int a, int b);
 int dropMessage(float p);
 
 int sockfd_udp = -1;
 int counter = 0;
+struct sockaddr_in recv_source_addr;
+socklen_t recv_addr_len = 0;
+int recv_flags = 0;
+int start_rb = 0, end_rb = 0, buffer_count = 0;
 
 // Initialize table
 unackMsg *unackTable;
@@ -52,6 +60,8 @@ recvMsgID *recvMsgIDTable;
 pthread_t tid;
 pthread_mutex_t mutex;
 pthread_mutexattr_t mutex_attribute;
+
+// Functions
 int r_socket(int domain, int type, int protocol)
 {
     if (type != SOCK_MRP)
@@ -72,6 +82,18 @@ int r_socket(int domain, int type, int protocol)
         unackTable[i].id = -1;
     }
     pthread_mutex_init(&mutex, NULL);
+    start_rb = 0;
+    end_rb = 0;
+    buffer_count = 0;
+
+    // Thread to handle this socket
+    pthread_attr_t attr;
+
+    pthread_attr_init(&attr);
+    int ret = pthread_create(&tid, &attr, runnerX, NULL);
+    if (ret < 0)
+        return -1;
+    return sockfd_udp;
 }
 
 int r_bind(int socket, const struct sockaddr *address, socklen_t address_len)
@@ -108,11 +130,31 @@ ssize_t r_sendto(int sockfd, const void *buffer, size_t len, int flags, const st
     local_unack_msg->flags = flags;
     local_unack_msg->dest_addr = *(struct sockaddr_in *)dest_addr;
     local_unack_msg->addrlen = addrlen;
-    
+
     //udp sendto
     ssize_t Size = sendto(sockfd, local_unack_msg->message, local_unack_msg->messlen, local_unack_msg->flags, (struct sockaddr *)&local_unack_msg->dest_addr, local_unack_msg->addrlen);
     return Size;
 }
+
+ssize_t r_recvfrom(int sockfd, char *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen)
+{
+    if (sockfd != sockfd_udp)
+        return -1;
+    while (1)
+    {
+        
+    }
+    
+}
+
+int r_close(int sockfd)
+{
+}
+
+ssize_t sendACK(int id, struct sockaddr_in addr, socklen_t addr_len)
+{
+}
+
 unackMsg *find_empty_place_unAckTable()
 {
     for (int i = 0; i < TABLE_SIZE; i++)
@@ -123,4 +165,75 @@ unackMsg *find_empty_place_unAckTable()
         }
     }
     return NULL;
+}
+
+void *runnerX(void *param)
+{
+    fd_set rfds;
+    struct timeval timeout;
+    timeout.tv_sec = TIMEOUT;
+
+    while (1)
+    {
+        FD_ZERO(&rfds);
+        FD_SET(sockfd_udp, &rfds);
+
+        int r = select(sockfd_udp + 1, &rfds, NULL, NULL, &timeout);
+        if (r < 0)
+        {
+            perror("Select Failed\n");
+        }
+        else if (r)
+        {
+            if (FD_ISSET(sockfd_udp, &rfds))
+            { //came out when received a message
+                HandleReceive();
+            }
+        }
+        else
+        {
+            timeout.tv_sec = TIMEOUT;
+            HandleRetransmit();
+        }
+    }
+}
+
+int HandleACKMsgReceive(int id)
+{
+}
+
+int HandleAppMsgReceive(int id, char *buf, struct sockaddr_in source_addr, socklen_t addr_len)
+{
+}
+
+int HandleReceive()
+{
+}
+
+int HandleRetransmit()
+{
+}
+
+int dropMessage(float p)
+{
+}
+
+int Increment()
+{
+}
+
+int getEmptyPlaceRecvid()
+{
+}
+
+int delFromUnackTable(int id)
+{
+}
+
+// size_t combineIntString(int id, char *buf, int len)
+// {
+// }
+
+void breakIntString(int *id, char *buf, int len)
+{
 }
