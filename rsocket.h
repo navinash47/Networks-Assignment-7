@@ -11,42 +11,12 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <assert.h>
 
 // Custom defines
 #define SOCK_MRP 1
+#define TABLE_SIZE 100
 #define MSG_SIZE 101
-
-// Send messages struct
-typedef struct _sendMsg
-{
-    int id;
-    struct sockaddr_in source_addr;
-    char message[MSG_SIZE];
-} sendMsg;
-
-// sendMsg* sendBuff;
-// sendBuff = (sendMsg*)malloc(100*(sizeof(sendMsg)))
-
-// Recieve messages struct
-typedef struct _recvMsg
-{
-    char message[MSG_SIZE];
-    struct sockaddr_in source_addr;
-    int messlen;
-} recvMsg;
-
-// recvMsg* recvBuff;
-// recvBuff = (recvMsg*)malloc(100*(sizeof(recvMsg)))
-
-// Unacknowledged messages struct
-typedef struct _unackMsg
-{
-    char message[MSG_SIZE];
-    int id;
-    int messlen;
-    struct sockaddr_in dest_addr;
-    struct timeval tv;
-} unackMsg;
 
 // Function prototypes
 int r_socket(int domain, int type, int protocol);
@@ -56,14 +26,6 @@ ssize_t r_recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr
 
 void *thread_X(void *param);
 
-void HandleRetransmit(int sockfd);
-void HandleReceive(int sockfd, char *buffer, const struct sockaddr *src_addr, int msg_len);
-void HandleAppMsgRecv(int sockfd, char *buffer, const struct sockaddr *src_addr, int msg_len);
-void sendAck(int id, int sockfd, const struct sockaddr *dest_addr);
-void HandleACKMsgRecv(char *buffer);
-
-int min(int a, int b);
-int dropMessage(float p);
 int r_close(int sfd);
 
 #endif
