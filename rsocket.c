@@ -142,9 +142,7 @@ ssize_t r_recvfrom(int sockfd, char *buf, size_t len, int flags, struct sockaddr
         return -1;
     while (1)
     {
-        
     }
-    
 }
 
 int r_close(int sockfd)
