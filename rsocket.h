@@ -12,13 +12,13 @@
 #include <unistd.h>
 #include <sys/time.h>
 
-
 // Custom defines
 #define SOCK_MRP 1
 #define MSG_SIZE 101
 
 // Send messages struct
-typedef struct _sendMsg {
+typedef struct _sendMsg
+{
     int id;
     struct sockaddr_in source_addr;
     char message[MSG_SIZE];
