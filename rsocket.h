@@ -16,7 +16,7 @@
 
 // Custom defines
 #define SOCK_MRP 1
-#define TABLE_SIZE 100
+#define TABLE_SIZE 101
 #define MSG_SIZE 101
 #define TIMEOUT 2
 #define TIMEOUT_USEC 0

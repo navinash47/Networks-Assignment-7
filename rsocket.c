@@ -26,6 +26,7 @@ typedef struct _unackMsg
     struct sockaddr_in dest_addr;
     socklen_t addrlen;
     struct timeval tv;
+    time_t tim;
 } unackMsg;
 
 //handle functions
@@ -36,13 +37,6 @@ int HandleRetransmit();
 //other functions
 unackMsg *find_empty_place_unAckTable();
 void *runnerX(void *param);
-size_t combineIntString(int id, char *buf, int len);
-int getEmptyPlaceRecvid();
-void breakIntString(int *id, char *buf, int len);
-int delFromUnackTable(int id);
-
-int min(int a, int b);
-int dropMessage(float p);
 
 int sockfd_udp = -1;
 int counter = 0;
@@ -252,7 +246,7 @@ void *runnerX(void *param)
                 }
                 else
                 {
-                    // Else do nothing
+                    // When Message is droped
                     printf("message dropped...\n");
                 }
             }
@@ -268,7 +262,10 @@ void *runnerX(void *param)
 int HandleReceive(int sockfd, char *buffer, struct sockaddr_in src_addr, int msglen)
 {
     int id;
-    breakIntString(&id, buffer, msglen);
+    int *ret;
+    msglen = strlen(buffer);
+    ret = (int *)(buffer + msglen + 1);
+    id = *ret;
     if (!strcmp(buffer, "Acknow"))
     {
         return HandleACKMsgReceive(id, buffer);
@@ -330,7 +327,6 @@ int HandleAppMsgReceive(int id, int sockfd, char *buf, struct sockaddr_in source
         buf[i] = '\0';
     strcat(ACK + len + 1, (char *)&id);
     size_t ret = len + sizeof(id);
-    // size_t ret = combineIntString(id, ACK, -1);
     size_t r = sendto(sockfd_udp, ACK, ret, 0, (struct sockaddr *)&source_addr, addr_len);
 
     return 0;
@@ -349,72 +345,12 @@ int HandleACKMsgReceive(int id, char *buffer)
         }
     }
     return -1;
-    // return delFromUnackTable(id);
 }
 
-// int HandleAppMsgReceive(int id, int sockfd, char *buf, struct sockaddr_in source_addr, socklen_t addr_len)
-// {
-//     int not_present = 1;
-//     for (int i = 0; i < TABLE_SIZE; i++)
-//     {
-//         if (recvMsgIDTable[i].id == id)
-//             not_present = 1;
-//     }
-//     if (not_present == 1)
-//     {
-//         strcpy(recvMsgTable[end_r_buffer].message, buf);
-//         recv_source_addr = source_addr;
-//         recv_addr_len = addr_len;
-//         buffer_count++;
-//         end_r_buffer = (end_r_buffer + 1) % BUFFER_SIZE;
-//         int j, i;
-//         for (i = 0; i < TABLE_SIZE; i++)
-//         {
-//             if (recvMsgIDTable[i].id == -1)
-//             {
-//                 j = i;
-//                 break;
-//             }
-//         }
-//         if (i == TABLE_SIZE)
-//             j = -1;
-//         if (i < 0)
-//             return -1;
-//         recvMsgIDTable[i].id = id;
-//         recvMsgIDTable[i].source_addr = source_addr;
-//         recvMsgIDTable[i].addr_len = addr_len;
-//     }
-//     //send ACK
-//     char ACK[BUFFER_SIZE];
-//     memset(ACK, '\0', sizeof(ACK));
-//     strcpy(ACK, "ACK");
-//     size_t ret = combineIntString(id, ACK, -1);
-//     size_t r = sendto(sockfd_udp, ACK, ret, 0, (struct sockaddr *)&source_addr, addr_len);
-
-//     return 0;
-// }
-
-// int HandleReceive(int sockfd, char *buffer, const struct sockaddr *src_addr, int msg_len)
-// {
-//     // If the message is an application message
-//     int id;
-//     breakIntString(&id, buffer, msg_len);
-
-//     if (strcmp(buffer, "ACK"))
-//     {
-//         return HandleAppMsgReceive(id, sockfd, buffer, (const struct sockaddr *)src_addr, msg_len);
-//     }
-//     // If the message is an acknowledgemet
-//     else
-//     {
-//         return HandleACKMsgReceive(id, buffer);
-//     }
-// }
 
 int HandleRetransmit()
 {
     time_t time_now = time(NULL);
-    // pthread_mutex_lock(&lock);
     for (int i = 0; i < TABLE_SIZE; i++)
     {
 
@@ -427,7 +363,6 @@ int HandleRetransmit()
                                (struct sockaddr *)&unackTable[i].dest_addr,
                                unackTable[i].addrlen);
             unackTable[i].tv.tv_sec = time_now;
-            // pthread_mutex_unlock(&lock);
             printf("Retransmiting : %d\n", unackTable[i].id);
             cnt_trans++;
             if (r < 0)
@@ -443,24 +378,3 @@ int dropMessage(float p)
     return rand_num < p;
 }
 
-// int delFromUnackTable(int id)
-// {
-//     for (int i = 0; i < TABLE_SIZE; i++)
-//     {
-//         if (unackTable[i].id == id)
-//         {
-//             unackTable[i].id = -1;
-//             // free(unAckMsgTable[i].msg);
-//             return 0;
-//         }
-//     }
-//     return -1;
-// }
-
-void breakIntString(int *id, char *buf, int len)
-{
-    int *ret;
-    len = strlen(buf);
-    ret = (int *)(buf + len + 1);
-    *id = *ret;
-}
