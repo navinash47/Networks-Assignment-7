@@ -1,7 +1,7 @@
 #include "rsocket.h"
 
-#define PORT1 53030
-#define PORT2 53031
+#define PORT1 52056
+#define PORT2 52057
 
 int main()
 {
@@ -10,23 +10,23 @@ int main()
     scanf("%s", input);
     int sockfd;
     sockfd = r_socket(AF_INET, SOCK_MRP, 0);
-    struct sockaddr_in srcaddr, destaddr;
+    struct sockaddr_in user1_addr, user2_addr;
     if (sockfd < 0)
     {
         perror("socket creation error: user1\n");
         exit(EXIT_FAILURE);
     }
-    memset(&srcaddr, 0, sizeof(srcaddr));
+    memset(&user1_addr, 0, sizeof(user1_addr));
     //source address assigning
-    srcaddr.sin_family = AF_INET;
-    srcaddr.sin_addr.s_addr = INADDR_ANY;
-    srcaddr.sin_port = htons(PORT1);
+    user1_addr.sin_family = AF_INET;
+    user1_addr.sin_addr.s_addr = INADDR_ANY;
+    user1_addr.sin_port = htons(PORT1);
     //destination address assigning
-    destaddr.sin_family = AF_INET;
-    destaddr.sin_addr.s_addr = INADDR_ANY;
-    destaddr.sin_port = htons(PORT2);
+    user2_addr.sin_family = AF_INET;
+    user2_addr.sin_addr.s_addr = INADDR_ANY;
+    user2_addr.sin_port = htons(PORT2);
     //bind to rsocket
-    if (r_bind(sockfd, (const struct sockaddr *)&srcaddr, sizeof(srcaddr)) < 0)
+    if (r_bind(sockfd, (const struct sockaddr *)&user1_addr, sizeof(user1_addr)) < 0)
     {
         perror("Bind error in user1\n");
         exit(1);
@@ -36,7 +36,7 @@ int main()
     // Send each character of the entered string one by one
     for (i = 0; i < len; i++)
     {
-        int ret = r_sendto(sockfd, &input[i], 1, 0, (struct sockaddr *)&destaddr, sizeof(destaddr));
+        int ret = r_sendto(sockfd, &input[i], 1, 0, (struct sockaddr *)&user2_addr, sizeof(user2_addr));
         if (ret < 0)
         {
             perror("Send error");
