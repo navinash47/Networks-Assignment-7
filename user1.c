@@ -31,7 +31,7 @@ int main()
         perror("Bind error in user1\n");
         exit(1);
     }
-    printf("Sender running....\n");
+    printf("Sender running....ie., user1\n");
     int i, len = strlen(input);
     // Send each character of the entered string one by one
     for (i = 0; i < len; i++)

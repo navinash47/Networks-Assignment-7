@@ -28,7 +28,7 @@ int main()
         perror("Bind error");
         exit(1);
     }
-    printf("Receiver running\n");
+    printf("Receiver running: ie., user2 \n");
     char input;
     int len;
     // Receive all characters in a loop.
@@ -38,10 +38,10 @@ int main()
     {
         len = sizeof(user1_addr);
         r_recvfrom(sockfd, &input, 1, 0, (struct sockaddr *)&user1_addr, &len);
-        printf("---------------------------\n");
+        // printf("---------------------------\n");
         printf("Received %c\n", input);
         fflush(stdout);
-        printf("---------------------------\n");
+        // printf("---------------------------\n");
     }
     r_close(sockfd);
     return 0;

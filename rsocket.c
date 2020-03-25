@@ -37,6 +37,7 @@ int HandleRetransmit();
 //other functions
 unackMsg *find_empty_place_unAckTable();
 void *runnerX(void *param);
+int dropMessage(float p);
 
 int sockfd_udp = -1;
 int counter = 0;
@@ -347,7 +348,6 @@ int HandleACKMsgReceive(int id, char *buffer)
     return -1;
 }
 
-
 int HandleRetransmit()
 {
     time_t time_now = time(NULL);
@@ -377,4 +377,3 @@ int dropMessage(float p)
     float rand_num = (float)rand() / ((float)RAND_MAX + 1);
     return rand_num < p;
 }
-

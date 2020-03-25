@@ -21,7 +21,7 @@
 #define TIMEOUT 2
 #define TIMEOUT_USEC 0
 #define DROP_PROBALITY 0.2
-#define BUFFER_SIZE 100
+#define BUFFER_SIZE 101
 
 // Function prototypes
 int r_socket(int domain, int type, int protocol);
