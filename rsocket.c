@@ -136,21 +136,66 @@ ssize_t r_sendto(int sockfd, const void *buffer, size_t len, int flags, const st
     return Size;
 }
 
-ssize_t r_recvfrom(int sockfd, char *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen)
+ssize_t r_recvfrom(int sockfd, void *buffer, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen)
 {
+    char *buf = (char *)buffer;
+
     if (sockfd != sockfd_udp)
         return -1;
     while (1)
     {
+        if (buffer_count > 0)
+        {
+            buffer_count--;
+            strcpy(buf, recvMsgTable[start_rb].message);
+            recvMsgTable[start_rb].dest_addr = recv_source_addr;
+            start_rb = (start_rb + 1) % BUFFER_SIZE;
+            if (len >= 0 && len < strlen(buf))
+            {
+                buf[len] = '\0';
+            }
+            len = strlen(buf);
+            *src_addr = *(struct sockaddr *)&recv_source_addr;
+            *addrlen = recv_addr_len;
+            recv_flags = flags;
+            return len;
+        }
+        else if (flags == MSG_DONTWAIT)
+            break;
+        else
+            sleep(0.001);
     }
 }
 
 int r_close(int sockfd)
 {
+    if (sockfd != sockfd_udp)
+        return -1;
+    while (1)
+    {
+        int flag = 0;
+        for (int i = 0; i < TABLE_SIZE; i++)
+        {
+            if (unackTable[i].id != -1)
+                flag = 1;
+        }
+        if (flag == 0)
+            break;
+    }
+    pthread_kill(tid, SIGKILL);
+    for (int i = 0; i < TABLE_SIZE; i++)
+    {
+        free(unackTable[i].message);
+    }
+    free(unackTable);
+    free(recvMsgIDTable);
+    free(recvMsgTable);
+    return close(sockfd);
 }
 
 ssize_t sendACK(int id, struct sockaddr_in addr, socklen_t addr_len)
 {
+
 }
 
 unackMsg *find_empty_place_unAckTable()
@@ -184,7 +229,8 @@ void *runnerX(void *param)
         else if (r)
         {
             if (FD_ISSET(sockfd_udp, &rfds))
-            { //came out when received a message
+            { 
+                //came out when received a message
                 HandleReceive();
             }
         }

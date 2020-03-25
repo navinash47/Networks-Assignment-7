@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <assert.h>
+#include <signal.h>
 
 // Custom defines
 #define SOCK_MRP 1
@@ -20,8 +21,6 @@
 #define TIMEOUT 2
 #define DROP_PROBALITY 0.2
 #define BUFFER_SIZE 100
-
-
 
 // Function prototypes
 int r_socket(int domain, int type, int protocol);
