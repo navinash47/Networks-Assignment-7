@@ -19,6 +19,7 @@
 #define TABLE_SIZE 100
 #define MSG_SIZE 101
 #define TIMEOUT 2
+#define TIMEOUT_USEC 0
 #define DROP_PROBALITY 0.2
 #define BUFFER_SIZE 100
 

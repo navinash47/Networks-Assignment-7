@@ -86,11 +86,14 @@ int r_socket(int domain, int type, int protocol)
     end_rb = 0;
     buffer_count = 0;
 
+    int *param = (int *)malloc(sizeof(int));
+    *param = sockfd_udp;
+
     // Thread to handle this socket
     pthread_attr_t attr;
 
     pthread_attr_init(&attr);
-    int ret = pthread_create(&tid, &attr, runnerX, NULL);
+    int ret = pthread_create(&tid, &attr, runnerX, param);
     if (ret < 0)
         return -1;
     return sockfd_udp;
@@ -195,7 +198,6 @@ int r_close(int sockfd)
 
 ssize_t sendACK(int id, struct sockaddr_in addr, socklen_t addr_len)
 {
-
 }
 
 unackMsg *find_empty_place_unAckTable()
@@ -212,31 +214,54 @@ unackMsg *find_empty_place_unAckTable()
 
 void *runnerX(void *param)
 {
-    fd_set rfds;
+    int sockfd = *((int *)param);
+    fd_set readfd;
+    int nfds = sockfd + 1;
     struct timeval timeout;
     timeout.tv_sec = TIMEOUT;
+    timeout.tv_usec = TIMEOUT_USEC;
 
+    int r;
     while (1)
     {
-        FD_ZERO(&rfds);
-        FD_SET(sockfd_udp, &rfds);
+        FD_ZERO(&readfd);
+        FD_SET(sockfd_udp, &readfd);
 
-        int r = select(sockfd_udp + 1, &rfds, NULL, NULL, &timeout);
+        r = select(sockfd_udp + 1, &readfd, NULL, NULL, &timeout);
         if (r < 0)
         {
             perror("Select Failed\n");
         }
-        else if (r)
+        else if (r > 0)
         {
-            if (FD_ISSET(sockfd_udp, &rfds))
-            { 
+            if (FD_ISSET(sockfd_udp, &readfd))
+            {
                 //came out when received a message
-                HandleReceive();
+                char buffer[BUFFER_SIZE];
+                bzero(buffer, BUFFER_SIZE);
+                struct sockaddr_in src_addr;
+                int len;
+                len = sizeof(src_addr);
+                // Receive message
+                int msg_len = recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&src_addr, &len);
+                // Compute probability for dropping
+                if (dropMessage(DROP_PROBALITY) == 0)
+                {
+                    // If not dropping, handle the received message
+                    HandleReceive(sockfd, buffer, (const struct sockaddr *)&src_addr, msg_len);
+                }
+                else
+                {
+                    // Else do nothing
+                    printf("Dropping message\n");
+                }
+                // HandleReceive();
             }
         }
         else
         {
             timeout.tv_sec = TIMEOUT;
+            timeout.tv_usec = TIMEOUT_USEC;
             HandleRetransmit();
         }
     }
@@ -250,8 +275,16 @@ int HandleAppMsgReceive(int id, char *buf, struct sockaddr_in source_addr, sockl
 {
 }
 
-int HandleReceive()
+int HandleReceive(int sockfd,char* buffer,const struct sockaddr * src_addr,int msg_len)
 {
+    	// If the message is an application message
+	if(buffer[0] == 'M'){
+		HandleAppMsgRecv(sockfd,buffer,(const struct sockaddr *)src_addr,msg_len);
+	}
+	// If the message is an acknowledgemet
+	else{
+		HandleACKMsgRecv(buffer);
+	}
 }
 
 int HandleRetransmit()
