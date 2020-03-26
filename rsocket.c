@@ -34,6 +34,7 @@ int HandleReceive(int sockfd, char *buffer, struct sockaddr_in src_addr, int msg
 int HandleACKMsgReceive(int id, char *buffer);
 int HandleAppMsgReceive(int id, int sockfd, char *buf, struct sockaddr_in source_addr, socklen_t addr_len);
 int HandleRetransmit();
+void HandleReTransmit(int sockfd);
 //other functions
 unackMsg *find_empty_place_unAckTable();
 void *runnerX(void *param);
@@ -259,7 +260,8 @@ void *runnerX(void *param)
         {
             timeout.tv_sec = TIMEOUT;
             timeout.tv_usec = TIMEOUT_USEC;
-            HandleRetransmit();
+            // HandleRetransmit();
+            HandleReTransmit(sockfd);
         }
     }
 }
@@ -376,7 +378,7 @@ int HandleRetransmit()
     return 0;
 }
 
-void HandleRetransmit(int sockfd)
+void HandleReTransmit(int sockfd)
 {
     int i;
     struct timeval curr_time;
@@ -387,10 +389,11 @@ void HandleRetransmit(int sockfd)
     for (i = 0; i <= unack_msg_last; i++)
     {
         // If the message has timed out,
-        if (unackTable[i].tv.tv_sec >= TIMEOUT)
+        if (curr_time.tv_sec - unackTable[i].tv.tv_sec >= TIMEOUT)
         {
             // Retransmit the message
-            if (sendto(sockfd, unackTable[i].message, unackTable[i].message, 0, (const struct sockaddr *)&unackTable[i].dest_addr, sizeof(unackTable[i].dest_addr)) < 0)
+            printf
+            if (sendto(sockfd, unackTable[i].message, unackTable[i].messlen, 0, (const struct sockaddr *)&unackTable[i].dest_addr, sizeof(unackTable[i].dest_addr)) < 0)
             {
                 perror("Unable to send");
                 exit(1);
