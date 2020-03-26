@@ -389,10 +389,10 @@ void HandleReTransmit(int sockfd)
     for (i = 0; i <= unack_msg_last; i++)
     {
         // If the message has timed out,
-        if (curr_time.tv_sec - unackTable[i].tv.tv_sec >= TIMEOUT)
+        if (curr_time.tv_sec - unackTable[i].tv.tv_sec >= TIMEOUT && unackTable[i].id != -1)
         {
             // Retransmit the message
-            printf
+            printf("Retransmitting %d\n", unackTable[i].id);
             if (sendto(sockfd, unackTable[i].message, unackTable[i].messlen, 0, (const struct sockaddr *)&unackTable[i].dest_addr, sizeof(unackTable[i].dest_addr)) < 0)
             {
                 perror("Unable to send");
