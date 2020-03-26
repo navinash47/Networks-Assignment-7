@@ -401,7 +401,7 @@ void HandleRetransmit(int sockfd)
             num_tranmissions++;
         }
     }
-    pthread_mutex_unlock(&mutex);
+    // pthread_mutex_unlock(&mutex);
     //----------------------unlock
 }
 int dropMessage(float p)
