@@ -59,7 +59,7 @@ recvMsgID *recvMsgIDTable;
 pthread_t tid;
 pthread_mutex_t mutex;
 pthread_mutexattr_t mutex_attribute;
-
+//////arnabs/////////////////////////
 // Functions
 int r_socket(int domain, int type, int protocol)
 {
@@ -104,7 +104,7 @@ int r_bind(int socket, const struct sockaddr *address, socklen_t address_len)
     // General UDP bind
     return bind(socket, address, address_len);
 }
-
+//////////////////arnabs//////////////
 ssize_t r_sendto(int sockfd, const void *buffer, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen)
 {
     if (sockfd != sockfd_udp)
@@ -141,7 +141,7 @@ ssize_t r_sendto(int sockfd, const void *buffer, size_t len, int flags, const st
     unack_msg_last++;
     return Size;
 }
-
+///////////////////arnabs////////////////
 ssize_t r_recvfrom(int sockfd, void *buffer, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen)
 {
     char *buf = (char *)buffer;
@@ -172,7 +172,7 @@ ssize_t r_recvfrom(int sockfd, void *buffer, size_t len, int flags, struct socka
             sleep(0.001);
     }
 }
-
+/////arnabs//////////////////////
 int r_close(int sockfd)
 {
     if (sockfd != sockfd_udp)
@@ -198,7 +198,7 @@ int r_close(int sockfd)
     free(recvMsgTable);
     return close(sockfd);
 }
-
+///ours
 unackMsg *find_empty_place_unAckTable()
 {
     for (int i = 0; i < TABLE_SIZE; i++)
@@ -211,8 +211,10 @@ unackMsg *find_empty_place_unAckTable()
     return NULL;
 }
 
+/////arnabs and saisakeths////////////////////////////
 void *runnerX(void *param)
 {
+    ///////////////////arnabs/////////////////////////
     int sockfd = *((int *)param);
     fd_set readfd;
     int nfds = sockfd + 1;
@@ -235,6 +237,7 @@ void *runnerX(void *param)
         {
             if (FD_ISSET(sockfd_udp, &readfd))
             {
+                ///////////////////////////////////////saisakeths//////////////////////////
                 //came out when received a message
                 char buffer[BUFFER_SIZE];
                 bzero(buffer, BUFFER_SIZE);
@@ -265,6 +268,7 @@ void *runnerX(void *param)
         }
     }
 }
+// saisakeths and arnabs
 int HandleReceive(int sockfd, char *buffer, struct sockaddr_in src_addr, int msglen)
 {
     int id;
@@ -272,6 +276,8 @@ int HandleReceive(int sockfd, char *buffer, struct sockaddr_in src_addr, int msg
     msglen = strlen(buffer);
     ret = (int *)(buffer + msglen + 1);
     id = *ret;
+    //arnabs///////
+
     if (!strcmp(buffer, "Acknow"))
     {
         return HandleACKMsgReceive(id, buffer);
@@ -293,6 +299,8 @@ int check_dupli_recvidtable(int id)
     }
     return 0;
 }
+//arnabs /////////////////////////////////////////////
+
 int HandleAppMsgReceive(int id, int sockfd, char *buf, struct sockaddr_in source_addr, socklen_t addr_len)
 {
     int dupli_present;
@@ -337,7 +345,7 @@ int HandleAppMsgReceive(int id, int sockfd, char *buf, struct sockaddr_in source
 
     return 0;
 }
-
+//arnabs /////////////////////////////////////////////
 int HandleACKMsgReceive(int id, char *buffer)
 {
     printf("ACK %d\n", id);
@@ -353,7 +361,7 @@ int HandleACKMsgReceive(int id, char *buffer)
     }
     return -1;
 }
-
+//arnabs////////////////////////////////////////////
 int HandleRetransmit()
 {
     time_t time_now = time(NULL);
@@ -377,7 +385,7 @@ int HandleRetransmit()
     }
     return 0;
 }
-
+////saisakeths/////////////////////////////
 void HandleReTransmit(int sockfd)
 {
     int i;
@@ -407,6 +415,7 @@ void HandleReTransmit(int sockfd)
     // pthread_mutex_unlock(&mutex);
     //----------------------unlock
 }
+///both have written same
 int dropMessage(float p)
 {
     float rand_num = (float)rand() / ((float)RAND_MAX + 1);
