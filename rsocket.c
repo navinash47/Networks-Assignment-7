@@ -46,6 +46,8 @@ socklen_t recv_addr_len = 0;
 int recv_flags = 0;
 int start_r_buffer = 0, end_r_buffer = 0, buffer_count = 0;
 int cnt_trans = 0;
+int unack_msg_last = -1;
+int num_tranmissions = 0;
 
 // Initialize table
 unackMsg *unackTable;
@@ -135,6 +137,7 @@ ssize_t r_sendto(int sockfd, const void *buffer, size_t len, int flags, const st
 
     ssize_t Size = sendto(sockfd, local_unack_msg->message, local_unack_msg->messlen, local_unack_msg->flags, (struct sockaddr *)&local_unack_msg->dest_addr, local_unack_msg->addrlen);
     cnt_trans++;
+    unack_msg_last++;
     return Size;
 }
 
@@ -342,6 +345,7 @@ int HandleACKMsgReceive(int id, char *buffer)
         {
             unackTable[i].id = -1;
             // free(unAckMsgTable[i].msg);
+            unack_msg_last--;
             return 0;
         }
     }
@@ -372,6 +376,34 @@ int HandleRetransmit()
     return 0;
 }
 
+void HandleRetransmit(int sockfd)
+{
+    int i;
+    struct timeval curr_time;
+    gettimeofday(&curr_time, NULL);
+    //----------------------lock
+    //  pthread_mutex_lock(&mutex);
+    // Loop over the unacknowledged messages.
+    for (i = 0; i <= unack_msg_last; i++)
+    {
+        // If the message has timed out,
+        if (unackTable[i].tv.tv_sec >= TIMEOUT)
+        {
+            // Retransmit the message
+            if (sendto(sockfd, unackTable[i].message, unackTable[i].message, 0, (const struct sockaddr *)&unackTable[i].dest_addr, sizeof(unackTable[i].dest_addr)) < 0)
+            {
+                perror("Unable to send");
+                exit(1);
+            }
+            // Update the time for the message
+            unackTable[i].tv.tv_sec = curr_time.tv_sec;
+            unackTable[i].tv.tv_usec = curr_time.tv_usec;
+            num_tranmissions++;
+        }
+    }
+    pthread_mutex_unlock(&mutex);
+    //----------------------unlock
+}
 int dropMessage(float p)
 {
     float rand_num = (float)rand() / ((float)RAND_MAX + 1);
